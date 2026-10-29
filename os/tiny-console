@@ -1,0 +1,9 @@
+#!/bin/bash
+# PID 1 starts this in a new session with the controlling console.
+trap '' INT QUIT TSTP
+stty sane -ixon -ixoff 2>/dev/null || true
+if [ ! -e /var/lib/tiny-setup/complete ]; then
+    /usr/local/sbin/tiny-account-setup || { sleep 2; exit 1; }
+fi
+trap - INT QUIT TSTP
+exec /bin/login

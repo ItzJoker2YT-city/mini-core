@@ -1,0 +1,14 @@
+/dist/
+*.raw
+*.qcow2
+*.ext4
+*.zip
+*.tar
+*.tar.gz
+*.tar.xz
+*.pem
+*.key
+*private*
+*console-key*
+*known-hosts*
+.env

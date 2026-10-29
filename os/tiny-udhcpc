@@ -1,0 +1,13 @@
+#!/bin/sh
+B=/bin/busybox
+case "$1" in
+ deconfig) $B ifconfig "$interface" 0.0.0.0 ;;
+ bound|renew)
+  $B ifconfig "$interface" "$ip" netmask "${subnet:-255.255.255.0}" up
+  $B route del default dev "$interface" 2>/dev/null || true
+  for gateway in $router; do $B route add default gw "$gateway" dev "$interface"; break; done
+  : > /etc/resolv.conf
+  for server in $dns; do printf 'nameserver %s\n' "$server" >> /etc/resolv.conf; done
+ ;;
+esac
+exit 0

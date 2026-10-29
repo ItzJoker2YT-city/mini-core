@@ -1,0 +1,32 @@
+#!/bin/bash
+# Set a single-label hostname; preserve unrelated hosts entries.
+set -eu
+[ "$(id -u)" = 0 ] || { printf 'Run this command with sudo.\n' >&2; exit 1; }
+[ "$#" -le 1 ] || { printf 'Usage: mini-server-name [name]\n' >&2; exit 2; }
+current=$(cat /etc/hostname)
+while true; do
+    if [ "$#" = 1 ]; then name=$1; else
+        printf 'Server name [%s]: ' "$current"
+        IFS= read -r name || exit 1
+    fi
+    name="${name#"${name%%[![:space:]]*}"}"
+    name="${name%"${name##*[![:space:]]}"}"
+    name=${name,,}
+    name=${name:-$current}
+    if [[ "$name" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]]; then break; fi
+    printf 'Use 1–63 letters, digits or hyphens; start and end with a letter or digit.\n' >&2
+    [ "$#" = 0 ] || exit 2
+done
+umask 022
+h=$(mktemp /etc/hostname.XXXXXX)
+printf '%s\n' "$name" > "$h"
+chmod 644 "$h"
+mv "$h" /etc/hostname
+h=$(mktemp /etc/hosts.XXXXXX)
+awk -v name="$name" '$1 == "127.0.1.1" { if (!done++) print "127.0.1.1 " name; next } { print } END { if (!done) print "127.0.1.1 " name }' /etc/hosts > "$h"
+chmod 644 "$h"
+mv "$h" /etc/hosts
+/bin/busybox hostname "$name"
+sync
+printf 'Server name set to %s.\n' "$name"
+printf 'Open a new login shell to refresh an existing prompt.\n'

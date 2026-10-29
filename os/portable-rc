@@ -1,0 +1,31 @@
+#!/bin/sh
+B=/bin/busybox
+$B mount -o remount,rw /
+mountpoint -q /proc || $B mount -t proc proc /proc
+mountpoint -q /sys || $B mount -t sysfs sysfs /sys
+$B mkdir -p /dev/pts /run/sshd
+mountpoint -q /dev/pts || $B mount -t devpts devpts /dev/pts
+$B ln -snf /proc/self/fd /dev/fd
+$B hostname "$(cat /etc/hostname)"
+$B ip link set lo up
+/sbin/swapon -a 2>/dev/null || true
+for module in virtio_rng virtio_net e1000 e1000e vmxnet3 hv_netvsc; do
+ /sbin/modprobe "$module" 2>/dev/null || true
+done
+for path in /sys/class/net/*; do
+ iface=${path##*/}
+ [ "$iface" = lo ] && continue
+ [ "$(cat "$path/type" 2>/dev/null)" = 1 ] || continue
+ $B ip link set "$iface" up
+ $B udhcpc -b -i "$iface" -p "/run/udhcpc-$iface.pid" -s /etc/tiny-udhcpc -t 3 -T 3
+ break
+done
+$B chmod 755 /run/sshd
+[ -f /etc/ssh/ssh_host_ed25519_key ] || /usr/bin/ssh-keygen -A
+if [ -e /var/lib/tiny-setup/complete ]; then
+ /usr/sbin/sshd -t && /usr/sbin/sshd
+fi
+printf '\nMini Core — persistent VM edition\n'
+printf 'Rust PID 1 | apt + sudo | DHCP | SSH\n'
+printf 'Local account setup on first boot; authenticated login afterward.\n'
+printf 'Use: passwd | free -h | df -h / | apt update\n\n'

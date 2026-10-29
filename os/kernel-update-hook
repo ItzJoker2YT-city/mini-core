@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+if [ -f /boot/grub/grub.cfg ] && [ -x /usr/sbin/update-grub ]; then
+ /usr/sbin/update-grub
+fi

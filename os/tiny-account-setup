@@ -1,0 +1,60 @@
+#!/bin/bash
+# Runs on the local guest console, as root, before remote login is enabled.
+set -eu
+umask 077
+state=/var/lib/tiny-setup
+mkdir -p "$state"
+chmod 700 "$state"
+[ ! -e "$state/complete" ] || exit 0
+printf '\nMini Core first boot — create your administrator account\n'
+printf 'Choose a server name, username and password. Password characters are not displayed.\n'
+printf 'Remote SSH stays off until this setup is complete.\n\n'
+if [ ! -s "$state/hostname" ]; then
+    /usr/local/sbin/mini-server-name
+    cat /etc/hostname > "$state/hostname"
+fi
+if [ -s "$state/pending-user" ]; then
+    username=$(cat "$state/pending-user")
+    id "$username" >/dev/null 2>&1
+    printf 'Resuming account setup for %s.\n' "$username"
+else
+    while true; do
+        printf 'New username: '
+        IFS= read -r username || exit 1
+        username="${username#"${username%%[![:space:]]*}"}"
+        username="${username%"${username##*[![:space:]]}"}"
+        if [[ ! "$username" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
+            printf 'Use 1–32 lowercase letters, digits, underscores or hyphens; start with a letter or underscore.\n'
+            continue
+        fi
+        if getent passwd "$username" >/dev/null; then
+            printf 'That username already exists. Choose another.\n'
+            continue
+        fi
+        useradd --create-home --shell /bin/bash --groups sudo "$username"
+        printf '%s\n' "$username" > "$state/pending-user"
+        break
+    done
+fi
+while true; do
+    printf '\nSet the password for %s:\n' "$username"
+    if passwd "$username"; then
+        status=$(passwd -S "$username")
+        if [ "$(printf '%s\n' "$status" | awk '{print $2}')" = P ]; then break; fi
+    fi
+    printf 'A non-empty password is required. Please try again.\n'
+done
+# Replace the old root-only SSH allowlist with the chosen account.
+sed -i '/^AllowUsers[[:space:]]/d' /etc/ssh/sshd_config
+printf '\nAllowUsers %s\n' "$username" >> /etc/ssh/sshd_config
+/usr/sbin/sshd -t
+# Disable the previous shared root password. Administration is now through sudo.
+passwd --lock root >/dev/null
+/usr/sbin/visudo -c >/dev/null
+printf '%s\n' "$username" > "$state/username"
+touch "$state/complete"
+rm -f "$state/pending-user"
+sync
+/usr/sbin/sshd -t && /usr/sbin/sshd
+printf '\nSetup complete. Log in as %s on %s; use sudo for administrator commands.\n' "$username" "$(cat /etc/hostname)"
+printf 'Change your password later with passwd. The root account has not been renamed.\n\n'
