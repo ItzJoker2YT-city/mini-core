@@ -3,7 +3,7 @@
 #  terabox-link - connect your TeraBox to this VPS as its disk
 #
 #  Install (run as root on a Linux VPS):
-#    curl -fsSL https://raw.githubusercontent.com/ItzJoker2YT-city/mini-core/main/terabox-link/install.sh | bash
+#    curl -fsSL https://raw.githubusercontent.com/ItzJoker2YT-city/terabox-link/main/install.sh | bash
 #
 #  Non-interactive (optional):
 #    curl -fsSL .../install.sh | bash -s -- --cookie "ndus=...; ..."
