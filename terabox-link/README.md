@@ -7,7 +7,7 @@ One command turns any Linux VPS's TeraBox cloud storage (1 TB free) into the VPS
 Log in to your VPS as root and run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ItzJoker2YT-city/mini-core/main/terabox-link/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ItzJoker2YT-city/terabox-link/main/install.sh | bash
 ```
 
 It asks you to paste your TeraBox login key (see "Getting your key" below), then sets everything up and runs a self-test.
@@ -15,7 +15,7 @@ It asks you to paste your TeraBox login key (see "Getting your key" below), then
 Non-interactive version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ItzJoker2YT-city/mini-core/main/terabox-link/install.sh | bash -s -- --cookie "ndus=...; csrfToken=...; ..."
+curl -fsSL https://raw.githubusercontent.com/ItzJoker2YT-city/terabox-link/main/install.sh | bash -s -- --cookie "ndus=...; csrfToken=...; ..."
 ```
 
 ## What you get
