@@ -15,6 +15,24 @@ Get the QCOW2 disk, checksums and corresponding upstream sources from
 [Releases](https://github.com/ItzJoker2YT-city/mini-core/releases). Large disk images are release assets, not Git files.
 The v0.1.0 build uses Debian kernel **6.1.0-54-amd64** (package 6.1.190-1).
 
+## Run on Railway (browser terminal)
+
+The [`railway/`](railway/) directory plus [`railway.json`](railway.json) deploy
+Mini Core on [Railway](https://railway.app): the QCOW2 is downloaded and
+SHA256-verified at build, booted under QEMU inside a container, and the console
+is served as a shared web terminal (ttyd) on the service's public URL.
+
+- Deploy with `railway up` from a checkout, or on Railway: New Project →
+  Deploy from GitHub repo. `railway.json` selects `railway/Dockerfile` and
+  targets port 8080; generate a domain and open it for the VM console.
+- Set `TTYD_AUTH=user:pass` to require a password on the terminal; without it,
+  anyone with the URL shares the same console.
+- `QEMU_MEM` (MiB) and `QEMU_SMP` tune the VM. Railway containers have no KVM,
+  so the VM runs under software emulation and boots slower than locally.
+- Attach a volume at `/data` to keep the disk across restarts and redeploys.
+
+No credentials, SSH keys, or access URLs are embedded in these files.
+
 ## Features
 
 - First boot: choose **server name → username → hidden password**.
